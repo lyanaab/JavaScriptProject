@@ -113,6 +113,24 @@ function updateSpotlight(project) {
   spotlightTitles.appendChild(a);
 }
 
+function setActiveCard(activeCard) {
+  const cards = document.querySelectorAll("#projectList .projectCard");
+
+  cards.forEach((c) => {
+    c.classList.remove("active");
+    c.removeAttribute("aria-selected");
+    c.style.outline = "";
+    c.style.outlineOffset = "";
+  });
+
+  if (!activeCard) return;
+
+  activeCard.classList.add("active");
+  activeCard.setAttribute("aria-selected", "true");
+  activeCard.style.outline = "3px solid currentColor";
+  activeCard.style.outlineOffset = "4px";
+}
+
 function setupProjectSelection(projects) {
   const projectList = document.getElementById("projectList");
   if (!projectList) return;
@@ -124,7 +142,10 @@ function setupProjectSelection(projects) {
     if (!card) return;
 
     const project = getProjectById(card.dataset.projectId);
-    if (project) updateSpotlight(project);
+    if (!project) return;
+
+    setActiveCard(card);
+    updateSpotlight(project);
   });
 
   projectList.addEventListener("keydown", (e) => {
@@ -134,8 +155,12 @@ function setupProjectSelection(projects) {
     if (!card) return;
 
     e.preventDefault();
+
     const project = getProjectById(card.dataset.projectId);
-    if (project) updateSpotlight(project);
+    if (!project) return;
+
+    setActiveCard(card);
+    updateSpotlight(project);
   });
 }
 
@@ -280,13 +305,15 @@ async function init() {
     projectsData = await fetchProjectsData();
     createProjectCards(projectsData);
 
-    if (projectsData.length > 0) {
-      updateSpotlight(projectsData[0]);
-    }
-
     setupProjectSelection(projectsData);
     setupProjectArrows();
     setupFormValidation();
+
+    if (projectsData.length > 0) {
+      updateSpotlight(projectsData[0]);
+      const firstCard = document.querySelector("#projectList .projectCard");
+      setActiveCard(firstCard);
+    }
   } catch (err) {
     console.error(err);
   }
